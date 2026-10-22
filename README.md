@@ -64,6 +64,14 @@ Settings → Connectors → *Add custom connector*, then enter `https://mcp.gene
 </details>
 
 <details>
+<summary><b>ChatGPT</b></summary>
+
+Open [chatgpt.com/plugins](https://chatgpt.com/plugins), click **Add (+)** → **Add custom MCP**, and enter
+`https://mcp.genebe.net/v1/mcp`.
+
+</details>
+
+<details>
 <summary><b>Cursor</b></summary>
 
 Add to `~/.cursor/mcp.json`:
