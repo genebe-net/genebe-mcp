@@ -63,7 +63,7 @@ docker build -t genebe-mcp .
 docker run --rm -p 17843:17843 genebe-mcp             # http://localhost:17843/v1/mcp
 ```
 
-Configuration is by `GENEBE_*` environment variables, see the table in the [README](README.md#develop).
+Configuration is by `GENEBE_*` environment variables, see the table in [DEVELOPMENT.md](DEVELOPMENT.md#develop).
 
 ## Tests
 
