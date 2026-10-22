@@ -1,107 +1,74 @@
-# Uruchamianie i testowanie
+# Using GeneBe MCP
 
-## Wersja produkcyjna (mcp.genebe.net)
+GeneBe MCP is a read-only [MCP](https://modelcontextprotocol.io) server for variant annotation and ACMG classification
+by [GeneBe](https://genebe.net). It is hosted for you; no account or API key is needed.
 
-Zdeployowany serwer: `https://mcp.genebe.net/v1/mcp` (Streamable HTTP, bez konta i klucza). Szczegóły wdrożenia: [DEPLOYMENT.md](DEPLOYMENT.md).
+> **Research use only.** Not a diagnosis. Results must be reviewed by a qualified specialist.
+
+- Endpoint (Streamable HTTP): `https://mcp.genebe.net/v1/mcp`
+- Health check: `https://mcp.genebe.net/health`
+- Requests are rate limited per client IP.
+
+## Connect
+
+**Claude Code**
 
 ```bash
-# sprawdzenie, czy żyje
-curl https://mcp.genebe.net/health
-
-# Claude Code
 claude mcp add --transport http genebe https://mcp.genebe.net/v1/mcp
-
-# lista narzędzi surowym JSON-RPC
-curl -s -X POST https://mcp.genebe.net/v1/mcp \
-  -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' \
-  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
-
-# wywołanie narzędzia
-curl -s -X POST https://mcp.genebe.net/v1/mcp \
-  -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' \
-  -d '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"annotate_variant","arguments":{"variant":"chr6-160585140-T-G"}}}'
 ```
 
-Klienci z konfiguracją JSON (Cursor, VS Code itp.): `{ "mcpServers": { "genebe": { "url": "https://mcp.genebe.net/v1/mcp" } } }`.
-MCP Inspector (`npx @modelcontextprotocol/inspector`): transport Streamable HTTP, URL jak wyżej.
-Obowiązuje limit ok. 10 zapytań/s na adres IP.
+**Cursor, VS Code and other clients with a JSON config**
 
-## Lokalne uruchomienie
-
-Backend wybiera się zmienną `GENEBE_API_URL`. Domyślnie jest to `https://api.genebe.net/cloud/api-public`.
-Zmienne można też wpisać do `.env` (wzór: `.env.example`).
-
-### Uruchomienie serwera
-
-```bash
-# backend: api.genebe.net (domyślnie)
-GENEBE_PORT=8765 uv run python -m genebe_mcp
-
-# backend: lokalny
-GENEBE_API_URL=http://localhost:7180/cloud/api-public GENEBE_PORT=8765 uv run python -m genebe_mcp
+```json
+{ "mcpServers": { "genebe": { "url": "https://mcp.genebe.net/v1/mcp" } } }
 ```
 
-- Endpoint MCP: `http://localhost:8765/v1/mcp`
-- Sprawdzenie: `curl localhost:8765/health`
-- Jeśli lokalny backend stosuje limity, dodaj `GENEBE_API_KEY=<klucz>`.
-
-### Wywoływanie narzędzi
-
-**Prawdziwy asystent (Claude Code):**
-
-```bash
-claude mcp add --transport http genebe-local http://localhost:8765/v1/mcp
-```
-
-Potem można zapytać np. „czym jest 6-160585140-T-G?” albo „czy NM_005577.4:c.4195A>C jest łagodny?”.
-
-**MCP Inspector** (lista narzędzi, schematy, surowe odpowiedzi):
+**MCP Inspector** (tool list, schemas, raw responses)
 
 ```bash
 npx @modelcontextprotocol/inspector
 ```
 
-Wybierz transport Streamable HTTP i podaj URL serwera.
+Choose the Streamable HTTP transport and enter the endpoint URL.
 
-## Kontener Docker
+## Try it
+
+Ask your assistant:
+
+- "What is chr6-160585140-T-G?"
+- "Is NM_005577.4:c.4195A>C benign?"
+- "Why is this variant classified as it is?" (explains the ACMG decision path)
+- "Give me the MANE Select transcript and ClinGen validity for TP53."
+
+Or call a tool directly:
 
 ```bash
+curl -s -X POST https://mcp.genebe.net/v1/mcp \
+  -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"annotate_variant","arguments":{"variant":"chr6-160585140-T-G"}}}'
+```
+
+See the tool list in the [README](README.md#tools). Variants can be given as coordinates, HGVS, rsID or SPDI; the
+default genome build is hg38.
+
+## Run your own copy
+
+```bash
+# from source (Python 3.13, uv)
+uv sync
+GENEBE_PORT=8765 uv run python -m genebe_mcp          # http://localhost:8765/v1/mcp
+
+# Docker
 docker build -t genebe-mcp .
-
-# backend: api.genebe.net
-docker run --rm -p 17843:17843 genebe-mcp
-
-# backend: localhost:7180 na hoście (na Linuksie potrzebny --add-host)
-docker run --rm -p 17843:17843 \
-  --add-host=host.docker.internal:host-gateway \
-  -e GENEBE_API_URL=http://host.docker.internal:7180/cloud/api-public \
-  genebe-mcp
+docker run --rm -p 17843:17843 genebe-mcp             # http://localhost:17843/v1/mcp
 ```
 
-Endpoint MCP to wtedy `http://localhost:17843/v1/mcp`.
+Configuration is by `GENEBE_*` environment variables, see the table in the [README](README.md#develop).
 
-## Testy automatyczne
+## Tests
 
 ```bash
-uv run pytest                 # jednostkowe, bez sieci (zapisane odpowiedzi w tests/fixtures)
-uv run pytest -m live         # smoke testy na prawdziwym API
-
-# smoke testy na lokalnym backendzie
-GENEBE_API_URL=http://localhost:7180/cloud/api-public uv run pytest -m live
+uv run pytest             # unit tests, no network
+uv run pytest -m live     # smoke tests against the real GeneBe API
+uv run ruff check . && uv run ruff format --check . && uv run mypy
 ```
-
-## Kontrola jakości
-
-```bash
-uv run ruff check . && uv run ruff format --check .
-uv run mypy
-```
-
-## Publikacja obrazu
-
-```bash
-docker login quay.io
-./dockerize.sh                # testy, build i push jako :<wersja> oraz :latest
-```
-
-Wersja pochodzi z `pyproject.toml`. Przed kolejnym wydaniem podbij ją też w `server.json`.

@@ -81,21 +81,12 @@ Configuration (environment variables, see `.env.example`):
 | `GENEBE_API_KEY` | – | Service key sent as `Authorization: Bearer`; never exposed to MCP clients |
 | `GENEBE_PORT` / `GENEBE_HOST` | `17843` / `0.0.0.0` | Listen address |
 | `GENEBE_ALLOWED_HOSTS` / `GENEBE_ALLOWED_ORIGINS` | `mcp.genebe.net`, localhost | JSON lists of accepted `Host` / `Origin` headers (DNS-rebinding guard; `host:*` = any port) |
-| `GENEBE_TRUSTED_PROXIES` | `127.0.0.1,::1` | Proxy, którym wierzymy w `X-Forwarded-For` (adres użytkownika przekazywany do backendu, patrz DEPLOYMENT.md) |
+| `GENEBE_TRUSTED_PROXIES` | `127.0.0.1,::1` | Reverse proxies whose `X-Forwarded-For` is trusted; the end user's IP is passed on to the backend for per-IP rate limits |
 | `GENEBE_MAX_CONSEQUENCES`, `GENEBE_MAX_TRANSCRIPTS`, `GENEBE_MAX_TEXT_CHARS` | `8`, `25`, `6000` | Response size limits |
 
 Docker: `docker build -t genebe-mcp . && docker run -p 17843:17843 genebe-mcp`.
 Rate limiting per client IP is expected at the reverse proxy.
-Production deployment (host, nginx, release steps): see [DEPLOYMENT.md](DEPLOYMENT.md).
-
-## Publishing to the MCP Registry
-
-`server.json` describes the server for the [Official MCP Registry](https://registry.modelcontextprotocol.io).
-A test keeps its version and description in sync with `pyproject.toml` and the server code.
-
-1. Prove ownership of `genebe.net` (DNS TXT record) for the `net.genebe/*` namespace:
-   `mcp-publisher login dns --domain genebe.net --private-key <key>`
-2. Bump the version in `pyproject.toml` **and** `server.json`, then `mcp-publisher publish`.
+See [USAGE.md](USAGE.md) for connection examples and running locally.
 
 ## Data and attribution
 
