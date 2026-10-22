@@ -1,0 +1,18 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "net.genebe/genebe-mcp",
+  "title": "GeneBe",
+  "description": "Annotate and classify human genetic variants with GeneBe (ACMG, gnomAD, ClinVar). Research use only.",
+  "version": "0.1.0",
+  "websiteUrl": "https://genebe.net",
+  "repository": {
+    "url": "https://github.com/genebe-net/genebe-mcp",
+    "source": "github"
+  },
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.genebe.net/v1/mcp"
+    }
+  ]
+}

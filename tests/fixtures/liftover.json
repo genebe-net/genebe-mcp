@@ -1,0 +1,1 @@
+{"dest":"hg19","from":"hg38","results":[{"candidates":[{"chr":"chr6","end":161006172,"genome":"hg19","percentMapped":1.0,"start":161006172,"strand":"+"}],"input":"chr6:160585140","queryType":"POINT","source":{"chr":"chr6","end":160585140,"start":160585140},"status":"RESOLVED"}]}
